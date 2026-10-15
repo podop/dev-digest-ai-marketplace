@@ -1,0 +1,16 @@
+node_modules/
+site/dist/
+site/public/index.json
+site/public/releases.json
+site/public/stats.json
+site/public/bodies/
+site/public/*.tmp
+
+# Eval results and SDD working state
+**/evals/results/
+.sdd/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
