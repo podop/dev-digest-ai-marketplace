@@ -1,0 +1,10 @@
+{
+  "name": "research-tools",
+  "version": "1.0.0",
+  "description": "A generic read-only researcher agent: repository research with file:line evidence and external research pinned to the installed library version.",
+  "author": { "name": "AI Engineering" },
+  "homepage": "https://podop.github.io/dev-digest-ai-marketplace/#/plugin/research-tools",
+  "repository": "https://github.com/podop/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["research", "read-only", "agent", "discovery", "evidence"]
+}

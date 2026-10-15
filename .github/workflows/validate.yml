@@ -1,0 +1,63 @@
+name: Validate harness
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Keep the CLI on a known version; bump deliberately together with COMPATIBILITY.md files.
+      CLAUDE_CODE_VERSION: 2.1.300
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags are needed for the stable channel check
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Harness checks (manifests, versions, changelogs, dependencies, paths, secrets, language)
+        run: node scripts/check-plugins.mjs
+
+      - name: Install Claude Code CLI
+        run: npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+      - name: Validate marketplace
+        run: claude plugin validate --strict .
+
+      - name: Validate each plugin
+        run: |
+          status=0
+          for dir in plugins/*/; do
+            echo "::group::${dir}"
+            claude plugin validate --strict "${dir}" || status=1
+            echo "::endgroup::"
+          done
+          exit "${status}"
+
+      - name: Script tests
+        run: |
+          node --test 'scripts/tests/*.test.mjs'
+          python -m unittest discover -s plugins/sdd-engineering/scripts/tests -p 'test_*.py'
+          python -m unittest discover -s plugins/sdd-engineering/skills/engineering-insights/scripts -p 'test_*.py'
+
+      - name: Stable channel pins match their tags
+        if: hashFiles('channels/stable/.claude-plugin/marketplace.json') != ''
+        run: |
+          node scripts/channel.mjs check
+          claude plugin validate --strict channels/stable

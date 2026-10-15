@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: plan-from-spec
+tags: [sdd, plan, cost-baseline]
+context:
+  scaffold_script: scaffold.sh

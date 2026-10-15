@@ -1,0 +1,20 @@
+{
+  "name": "dev-digest-ai-marketplace",
+  "private": true,
+  "type": "module",
+  "description": "Claude Code plugin marketplace and its static catalog site.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node scripts/check-plugins.mjs",
+    "test": "node --test \"scripts/tests/*.test.mjs\"",
+    "build:index": "node scripts/build-index.mjs",
+    "dev:watch": "node scripts/dev-watch.mjs",
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "cost:report": "node scripts/cost-report.mjs",
+    "release": "node scripts/release.mjs",
+    "channel": "node scripts/channel.mjs"
+  }
+}
