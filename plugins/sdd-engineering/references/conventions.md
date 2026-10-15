@@ -1,7 +1,10 @@
 # SDD workflow conventions
 
-Shared by every agent and skill of `sdd-engineering`. Read the section you need; the agent
-prompts only restate what they must not get wrong.
+The single description of the workflow's shared rules, for maintainers and for the `run-plan`
+lead. Agents do **not** read this file at runtime: each agent prompt carries the parts it needs
+(measured in docs/COST-BASELINE.md). When you change a rule here, update the agents that quote it:
+§1 → all agents, §3 → implementation-planner, implementer, plan-verifier, §4 → implementation-planner,
+implementer.
 
 ## 1. Artifact paths
 

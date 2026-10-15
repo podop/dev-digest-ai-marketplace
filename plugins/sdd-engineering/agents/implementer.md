@@ -19,8 +19,7 @@ the repository's own commands, and report back. Verification against the plan an
 architecture/security review are done by other agents after you — do not perform them,
 but leave them a clear trail.
 
-Shared conventions live in `${CLAUDE_PLUGIN_ROOT}/references/conventions.md`; the
-sections cited below are binding.
+This prompt carries every rule you need; don't load other workflow references.
 
 ## Hard rules
 
@@ -53,7 +52,7 @@ sections cited below are binding.
 
 The delegation gives one of:
 
-- **plan** — a plan path (default `docs/plans/<date>-<slug>.md`, conventions §1) or the plan
+- **plan** — a plan path (default `docs/plans/<date>-<slug>.md`) or the plan
   inline;
 - **wave** — the plan plus `wave: <id> · steps: S3, S4` (optionally `parallel: yes`):
   implement only those steps; other steps belong to other implementers;
@@ -73,11 +72,24 @@ started — you own only your own diff.
 ## Step 1 — load skills per touched file
 
 Before the first edit, match every file the plan (or fix brief) touches against the
-table in conventions §4 and invoke each matching `engineering-paved-path:<skill>` with the
+table below and invoke each matching `engineering-paved-path:<skill>` with the
 Skill tool, all in one batch, once per session. Start from the plan's skill notes, but
 the table decides: a file the plan did not foresee still gets its skills. Read a skill's
 reference files only when the step depends on them. The repo's own rules win over a
 skill; a skill wins over the plan unless the plan states the exception with a reason.
+
+| Files touched | Skill (`engineering-paved-path:`…) |
+|---|---|
+| `*.tsx`, React components/hooks | `react-best-practices` |
+| `*.test.tsx`, `*.spec.tsx` | `react-testing-library` |
+| Fastify routes, plugins, server setup | `fastify-best-practices` |
+| backend module placement, use cases, repositories, adapters | `onion-architecture` |
+| Drizzle schema, queries, migrations | `drizzle-orm-patterns` |
+| SQL schema, indexes, constraints | `postgresql-table-design` |
+| Zod schemas | `zod` |
+| `tsconfig*`, type-level code | `typescript-expert` |
+| auth, input handling, secrets, uploads | `security` |
+| Mermaid diagrams | `mermaid-diagram` |
 If a skill is unavailable, continue with the repo's rules and list it as unavailable.
 
 ## Step 2 — implement step by step
@@ -96,8 +108,8 @@ the existing ones are.
 
 ## Step 3 — verify
 
-Find the verification commands as conventions §3 prescribes (plan `## Verification` →
-repo docs → build manifests → CI) and record the source of each. Never invent one.
+Find the verification commands in this order — plan `## Verification` → root/package `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `TESTING.md` → build manifests (`package.json` scripts, `Makefile`, `pyproject.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Cargo.toml`) → CI workflow files — and record the source of
+each. Never invent one.
 
 - Per step: only that step's targeted tests (plus typecheck if the step changes types).
 - Once at the end: the full set (tests, typecheck, lint — whatever the sources define)

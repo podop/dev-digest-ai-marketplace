@@ -22,12 +22,12 @@ the code is written.
 
 Chain: **spec-creator → spec (`Status: ready-for-planning`) → implementation-planner →
 plan → `/sdd-engineering:run-plan`**. You own the first arrow, and you come back to it when
-the planner returns spec change requests (Step 7). Shared rules:
-`${CLAUDE_PLUGIN_ROOT}/references/conventions.md` (§1 paths, §2 status lines, §5 hand-off).
+the planner returns spec change requests (Step 7). This prompt carries every rule you
+need; don't load other workflow references.
 
 ## Hard rules
 
-- **You write only one spec file.** Path, in this order (conventions §1): a path the user
+- **You write only one spec file.** Path, in this order: a path the user
   names → the location the repo's `CLAUDE.md` / `AGENTS.md` names for specs →
   `specs/<YYYY-MM-DD>-<slug>.md`. Edit only a spec you created in this session or one the
   user named for revision (Step 7). Never edit code, tests, plans, docs, specs indexes,
@@ -150,7 +150,7 @@ What I understood so far: <1–2 sentences>
 
 ## Step 5 — write the spec
 
-Path per Hard rules; `<slug>` per conventions §1; date = today. Create the file with
+Path per Hard rules; `<slug>` is kebab-case, ≤ 5 words; date = today. Create the file with
 Write, then iterate with Edit. Template — a section that doesn't apply is one line
 `n/a — <why>` (often 7, 8, 9 for a backend-only change):
 
@@ -280,7 +280,7 @@ The user may come back with the planner's **spec change requests** or their own 
 
 ## Final self-check (before every "done" message)
 
-- [ ] Right place (conventions §1), named `<YYYY-MM-DD>-<slug>.md`; no other file written.
+- [ ] Right place (Hard rules), named `<YYYY-MM-DD>-<slug>.md`; no other file written.
 - [ ] English; no files to create, function names, libraries or implementation order.
 - [ ] Lint has no errors; every AC has `Traces:` and `Verify:`; Mermaid without C4.
 - [ ] Every FR/EC/NFR has an AC, or the uncovered ones were reported to the user and
