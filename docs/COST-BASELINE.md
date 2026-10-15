@@ -56,6 +56,40 @@ unchanged.
 **Expected effect:** ≈ 1.6 k fewer cache-write tokens and one fewer API round trip per agent —
 roughly $0.01 and a few seconds per run, i.e. below the measured noise.
 
-## Result
+## Result — commit `46caf33` (released as 1.0.0 at `1246d51`)
 
-_Pending — the same eval set is being re-run on commit `46caf33`; numbers will be added here._
+Same eval set, model, Claude Code version and flags.
+
+| Case | Runs | Pass | Median cost | Median latency | Output | Cache read | Cache write | API calls | Tool calls |
+|---|---|---|---|---|---|---|---|---|---|
+| negative-unrelated-question | 3 | 100% | $0.069 | 9 s | 134 | 5,935 | 8,199 | 1 | 0 |
+| plan-from-spec | 3 | 100% | $0.370 | 97 s | 9,642 | 104,454 | 24,667 | 7 | 11 |
+| plan-no-test-command | 2 | 100% | $0.411 | 116 s | 11,466 | 101,753 | 26,066 | 7 | 10 |
+| spec-small-feature | 3 | 100% | $0.577 | 204 s | 17,894 | 108,290 | 32,700 | 7 | 10 |
+| **all** | 11 | 100% | $0.383 | 107 s | 10,041 | 104,454 | 25,111 | 7 | 10 |
+
+Total $4.06 including judges (baseline $4.00). Critical errors: none.
+
+| Metric (median, all runs) | Baseline | Optimized | Change |
+|---|---|---|---|
+| Runs that read `conventions.md` | 10 / 11 | 0 / 11 | removed — deterministic |
+| Tool calls | 11 | 10 | −1 |
+| Cache-write tokens | 27,377 | 25,111 | −8 % |
+| Cost | $0.400 | $0.383 | −4 % — **within noise** |
+| Latency | 116 s | 107 s | −8 % — **within noise** |
+| Total suite cost | $4.00 | $4.06 | +1.5 % — within noise |
+| Pass rate / quality gate | 11/11, green | 11/11, green | unchanged |
+
+**Verdict.** The quality gate stays green and no false negatives appeared (the negative case still
+scores 1.00). The change does what it targets: the extra file read is gone in every run, with one
+tool call and ~2 k cache-write tokens less per agent. The cost and latency differences are smaller
+than the run-to-run spread (spec case $0.49–$0.75 within one configuration), so **no saving in
+money or time is claimed**. The change is kept because it removes a duplicated source of
+instructions and lowers context at no quality cost.
+
+**What would move the number:** output tokens dominate (the spec case writes ~18 k tokens of spec
+for a five-requirement feature). A proportionality rule for small specs is the next candidate, to
+be measured the same way.
+
+Reproduce: run the command from Setup on each commit, then
+`node scripts/cost-report.mjs <results dir>`.
