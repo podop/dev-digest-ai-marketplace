@@ -4,7 +4,7 @@ Static, read-only catalog of this Claude Code plugin marketplace, published on G
 (`https://podop.github.io/dev-digest-ai-marketplace/`). The contract is
 [`docs/SITE-SPEC.md`](../docs/SITE-SPEC.md).
 
-Stack: React 18, TypeScript, Vite, MiniSearch (search), marked + DOMPurify (markdown).
+Stack: React 18, TypeScript, Vite, MiniSearch (search), marked + DOMPurify (markdown), Mermaid (diagrams, lazy-loaded).
 No backend, no UI framework, hash routing (`#/plugin/<name>`), relative asset paths
 (`base: './'`), so the build works under any sub-path and from any fork.
 
@@ -72,6 +72,7 @@ for source links (default: `GITHUB_REPOSITORY`, then the `origin` remote).
 | `src/lib/router.ts` | Hash router hook and route builders |
 | `src/lib/search.ts` | MiniSearch index, stop-word handling for natural-language queries, type words as filters |
 | `src/lib/markdown.ts` | marked + DOMPurify rendering, relative-link rewriting to GitHub |
+| `src/lib/mermaid.ts` | lazy Mermaid rendering of ```` ```mermaid ```` blocks (strict mode, SVG re-sanitized, re-rendered on theme change) |
 | `src/lib/data.ts` | Loading `index.json`, `releases.json` and bodies |
 | `src/pages/` | One component per route |
 | `src/components/` | Layout, cards, copy buttons, tabs, markdown |

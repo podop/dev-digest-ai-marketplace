@@ -11,6 +11,9 @@ documentation, see its dependencies and copy the install command.
 - **Real data only.** Every card, count and page comes from the generated index. The UI
   has no hard-coded plugin, skill or agent; an empty marketplace renders an empty state.
 - **Untrusted content.** README, SKILL.md and agent bodies come from pull requests.
+  Mermaid code blocks are rendered as diagrams by `mermaid`, loaded on demand only on pages
+  that contain one, with `securityLevel: 'strict'`, no HTML labels, and the SVG output
+  sanitized by DOMPurify again; a block that fails to parse stays visible as code.
   Markdown is rendered with `marked` and always sanitized with `DOMPurify` before it
   touches the DOM. Links to other origins open with `rel="noopener noreferrer"`.
 - **Pages-friendly routing.** Hash routing (`#/…`), relative asset paths (Vite

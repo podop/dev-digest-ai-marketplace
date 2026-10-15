@@ -48,6 +48,7 @@
   "common.errorBody": "The generated index is missing or invalid. Run node scripts/build-index.mjs from the repository root, then reload this page.",
   "common.documentErrorTitle": "This document could not be loaded",
   "common.documentErrorBody": "Reload the page to try again.",
+  "common.diagramFailed": "This diagram could not be rendered; showing its source.",
   "common.breadcrumb": "Breadcrumb",
   "common.none": "None.",
   "common.notSpecified": "Not specified",

@@ -15,13 +15,13 @@ The installer also installs the dependencies `engineering-paved-path`, `research
 ## How it works together
 
 ```mermaid
-flowchart LR
+flowchart TD
     U([request + design sources]) --> SC[spec-creator]
     SC -- facts --> R[research-tools:researcher]
-    SC --> S[(specs/&lt;date&gt;-&lt;slug&gt;.md<br/>Status: ready-for-planning)]
+    SC --> S[(specs/#lt;date#gt;-#lt;slug#gt;.md<br/>Status: ready-for-planning)]
     S --> IP[implementation-planner]
     IP -- spec change requests --> SC
-    IP --> P[(docs/plans/&lt;date&gt;-&lt;slug&gt;.md<br/>+ .context.md)]
+    IP --> P[(docs/plans/#lt;date#gt;-#lt;slug#gt;.md<br/>+ .context.md)]
     P --> RP{{/sdd-engineering:run-plan}}
     RP --> IM[implementer]
     IM --> V[verification commands]

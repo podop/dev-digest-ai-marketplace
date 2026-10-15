@@ -31,5 +31,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Mermaid's chunks are large but loaded on demand, only on pages that contain a diagram.
+    chunkSizeWarningLimit: 800,
   },
 });
