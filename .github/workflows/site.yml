@@ -1,0 +1,59 @@
+name: Catalog site
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'plugins/**'
+      - '.claude-plugin/**'
+      - 'scripts/build-index.mjs'
+      - '.github/workflows/site.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'plugins/**'
+      - '.claude-plugin/**'
+      - 'scripts/build-index.mjs'
+      - '.github/workflows/site.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build catalog site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags feed releases.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Build catalog index
+        run: node scripts/build-index.mjs
+
+      - name: Install site dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
+
+      - name: Upload site build
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-site
+          path: site/dist
+          if-no-files-found: error
+          retention-days: 7
