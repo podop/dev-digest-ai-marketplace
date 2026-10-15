@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "dev-digest-ai-marketplace-stable",
+  "owner": {
+    "name": "AI Engineering"
+  },
+  "metadata": {
+    "description": "Stable channel of dev-digest-ai-marketplace: every plugin is pinned to the commit of a released tag. Updated by scripts/channel.mjs."
+  },
+  "plugins": [
+    {
+      "name": "engineering-paved-path",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/podop/dev-digest-ai-marketplace.git",
+        "path": "plugins/engineering-paved-path",
+        "ref": "engineering-paved-path--v1.0.0",
+        "sha": "1246d518acf321f3d12f8f2763768af285a8824e"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "research-tools",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/podop/dev-digest-ai-marketplace.git",
+        "path": "plugins/research-tools",
+        "ref": "research-tools--v1.0.0",
+        "sha": "1246d518acf321f3d12f8f2763768af285a8824e"
+      },
+      "category": "research"
+    },
+    {
+      "name": "architecture-review",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/podop/dev-digest-ai-marketplace.git",
+        "path": "plugins/architecture-review",
+        "ref": "architecture-review--v1.0.0",
+        "sha": "1246d518acf321f3d12f8f2763768af285a8824e"
+      },
+      "category": "review"
+    },
+    {
+      "name": "sdd-engineering",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/podop/dev-digest-ai-marketplace.git",
+        "path": "plugins/sdd-engineering",
+        "ref": "sdd-engineering--v1.0.0",
+        "sha": "1246d518acf321f3d12f8f2763768af285a8824e"
+      },
+      "category": "workflow"
+    }
+  ]
+}

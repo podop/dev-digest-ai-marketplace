@@ -22,7 +22,7 @@ const ALL = flag('--all');
 const target = argv.find((a) => !a.startsWith('--'));
 
 const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
-const sh = (cmd, args, opts = {}) => execFileSync(cmd, args, { cwd: ROOT, encoding: 'utf8', ...opts }).trim();
+const sh = (cmd, args, opts = {}) => (execFileSync(cmd, args, { cwd: ROOT, encoding: 'utf8', ...opts }) ?? '').trim();
 const fail = (msg) => {
   console.error(`release: ${msg}`);
   process.exit(1);
