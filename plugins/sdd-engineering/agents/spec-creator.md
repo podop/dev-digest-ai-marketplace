@@ -233,9 +233,10 @@ Writing rules:
 - Every AC traces back to an FR, EC or NFR (`Traces:`) and names one verify method
   (`Verify:` — unit, integration, component, e2e or manual). An AC is observable from
   outside (a response, a screen, a log line, a stored record) and has one outcome.
-- **Every FR, EC and NFR should be covered by at least one AC.** Strongly recommended;
-  the lint reports gaps as warnings. Write the ACs; leave a requirement uncovered only
-  when the user accepts it (Step 6). Section 14 shows the mapping.
+- **Every mandatory requirement has at least one AC.** Every live FR, EC and NFR is
+  mandatory unless it is marked `(optional)` right after its id (and area tag):
+  `- FR4 [web] (optional) — …`. Only the user decides that a requirement is optional.
+  Section 14 shows the mapping.
 - Precise words: "shall", numbers with units, exact error codes. No "should probably",
   "fast", "user-friendly", "etc.", "as needed", "TBD".
 - Diagrams: Mermaid that renders on GitHub (flowchart/sequence/state; no C4 syntax, no
@@ -245,24 +246,27 @@ Writing rules:
 - Aim for ≤ 15 KB; a multi-area spec may exceed it — shorten Context and Design review
   first, never the ACs.
 
-Then run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec_lint.py" <spec>` (no other flags)
+Then run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec_lint.py" --require-ac-coverage <spec>`
 and fix every **error** (missing header or section, AC without `Traces:`/`Verify:`,
-unknown verify method, unknown or duplicate id, C4 diagram). Fix vague-word warnings.
-For each "not traced by any AC" warning, add an AC; if you cannot write a meaningful one,
-keep the warning for Step 6.
+unknown verify method, unknown or duplicate id, C4 diagram, mandatory requirement not
+traced by any AC). Fix vague-word warnings. For each untraced mandatory requirement, write
+an AC; if you cannot write a meaningful one, keep it for Step 6.
 
 ## Step 6 — review with the user
 
 Reply in chat with: the path; a 5-line summary; the open questions with their defaults;
 the accepted/open design-review items; the spec-lint result including the AC coverage
-line and **every uncovered FR/EC/NFR, with your recommendation to add an AC** (and a
-proposed Given/When/Then). Then iterate: each answer → Edit the spec, move the item to
+line and **every mandatory FR/EC/NFR without an AC, each with a proposed
+Given/When/Then**. Then iterate: each answer → Edit the spec, move the item to
 "Decisions", re-run the lint.
 
-Set `Status: ready-for-planning` only when the user approves, the lint has no errors and
-every open question has a default. Uncovered requirements do not block approval: if the
-user approves with some left, record `D<n> — <ids> accepted without an AC (user, <date>)`.
-Then tell the user to run `claude --agent sdd-engineering:implementation-planner` with
+**Readiness gate.** Set `Status: ready-for-planning` only when all hold: the user
+approves; `spec_lint.py --require-ac-coverage` exits 0 (so every mandatory requirement has
+an AC); every open question has a default. Approval alone does not pass the gate: while a
+mandatory requirement has no AC, keep `Status: draft`, even if the user asks for
+ready-for-planning, and say which ids block it. The user resolves each one by accepting
+your proposed AC (you add it), giving another AC, marking the requirement `(optional)`, or
+dropping it (strike-through) — record the choice in "Decisions". Then tell the user to run `claude --agent sdd-engineering:implementation-planner` with
 the spec path. As a subagent, return ≤ 20 lines: path, status, summary, lint result,
 uncovered ids, open questions.
 
@@ -283,8 +287,8 @@ The user may come back with the planner's **spec change requests** or their own 
 - [ ] Right place (Hard rules), named `<YYYY-MM-DD>-<slug>.md`; no other file written.
 - [ ] English; no files to create, function names, libraries or implementation order.
 - [ ] Lint has no errors; every AC has `Traces:` and `Verify:`; Mermaid without C4.
-- [ ] Every FR/EC/NFR has an AC, or the uncovered ones were reported to the user and
-      recorded in "Decisions".
+- [ ] `Status: ready-for-planning` only if `spec_lint.py --require-ac-coverage` exits 0;
+      otherwise the spec is `draft` and the blocking ids were reported to the user.
 - [ ] IDs are stable (nothing renumbered); multi-area items carry an area tag; section 14
       matches.
 - [ ] Every design source was analysed (frames listed); every gap is in section 15 with a

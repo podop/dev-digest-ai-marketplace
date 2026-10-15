@@ -32,6 +32,11 @@ class SpecLintTest(unittest.TestCase):
         self.assertIn("error   line", result.stdout)
         self.assertIn("FR2 is not traced by any AC", result.stdout)
 
+    def test_optional_requirement_needs_no_ac(self):
+        result = run("--require-ac-coverage", os.path.join(FIXTURES, "optional.md"))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("AC coverage 3/3 mandatory", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

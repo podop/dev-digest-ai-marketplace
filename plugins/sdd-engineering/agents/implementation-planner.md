@@ -67,9 +67,9 @@ reading feeds this — iterate):
   criteria (`AC…`).
 - **Testable**: every AC is observable and has one outcome; a vague one ("fast", "handles
   errors") is a gap.
-- **Covered**: every FR/EC/NFR is traced by an AC. An uncovered one (accepted by the user
-  in the spec's "Decisions") is planned against its own id and listed as a recommendation
-  to add an AC; one not accepted there is a spec change request.
+- **Covered**: every mandatory FR/EC/NFR (not marked `(optional)`) is traced by an AC; an
+  untraced one is a spec change request. Optional requirements, and older specs whose
+  "Decisions" accept a requirement without an AC, are planned against their own id.
 - **Consistent**: no AC contradicts another, the code (`file:line`), a repo note, a skill
   rule or a repo convention.
 - **Complete**: contracts have error cases; component interactions have failure

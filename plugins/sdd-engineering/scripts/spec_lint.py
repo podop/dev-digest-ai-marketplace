@@ -16,10 +16,12 @@ Errors (exit 1):
   - Mermaid C4 diagrams (they do not render on GitHub).
 
 Warnings (exit 0):
-  - an FR/EC/NFR that no AC traces (an error with --require-ac-coverage);
+  - a mandatory FR/EC/NFR that no AC traces (an error with --require-ac-coverage);
   - vague words outside code blocks.
 
-Struck-through items (`- ~~FR3 ...~~`) are dropped requirements and are not checked.
+Every live FR/EC/NFR is mandatory unless it is marked optional right after its id
+(`- FR4 (optional) — ...`). Struck-through items (`- ~~FR3 ...~~`) are dropped requirements
+and are not checked.
 Python 3.9+, standard library only.
 """
 import argparse
@@ -32,6 +34,7 @@ STATUSES = {"draft", "ready-for-planning"}
 VERIFY = {"unit", "integration", "component", "e2e", "manual"}
 HEADER = re.compile(r"^Spec: .*?Status:\s*([\w-]+)", re.M)
 ITEM = re.compile(r"^- (~~)?\s*(FR|EC|NFR|AC)(\d+)\b")
+OPTIONAL = re.compile(r"^\s*(?:\[[\w-]+\]\s*)?\(optional\)", re.I)
 ID = re.compile(r"\b(?:FR|EC|NFR)\d+\b")
 VAGUE = re.compile(
     r"\b(should probably|user-friendly|etc\.|as needed|TBD|fast|quickly|seamless(?:ly)?)(?![\w-])",
@@ -45,7 +48,7 @@ def _sort_key(key):
 def lint(path, require_ac_coverage=False):
     """Return (errors, warnings, coverage) for one spec file.
 
-    coverage is (covered, total) over live FR/EC/NFR items.
+    coverage is (covered, total) over mandatory (live, not optional) FR/EC/NFR items.
     """
     errors, warnings = [], []
     try:
@@ -87,7 +90,8 @@ def lint(path, require_ac_coverage=False):
             key = f"{kind}{num}"
             if key in defined:
                 errors.append(f"line {n}: duplicate id {key} (first at line {defined[key][0]})")
-            defined[key] = (n, bool(struck))
+            optional = bool(OPTIONAL.match(line[m.end():]))
+            defined[key] = (n, bool(struck) or optional)
             block = key if kind == "AC" and not struck else None
             if block:
                 acs[block] = {"line": n, "text": line}
@@ -120,11 +124,11 @@ def lint(path, require_ac_coverage=False):
     if not acs:
         errors.append("no acceptance criteria (`- AC1 ...`)")
 
-    requirements = sorted((k for k, (_, struck) in defined.items()
-                           if not struck and not k.startswith("AC")), key=_sort_key)
+    requirements = sorted((k for k, (_, exempt) in defined.items()
+                           if not exempt and not k.startswith("AC")), key=_sort_key)
     uncovered = [k for k in requirements if k not in traced]
     for key in uncovered:
-        msg = f"line {defined[key][0]}: {key} is not traced by any AC"
+        msg = f"line {defined[key][0]}: mandatory {key} is not traced by any AC"
         if require_ac_coverage:
             errors.append(msg)
         else:
@@ -138,7 +142,7 @@ def main(argv=None):
         epilog="Exit codes: 0 clean or warnings only, 1 errors, 2 usage error.")
     parser.add_argument("specs", nargs="+", metavar="SPEC.md", help="spec file(s) to check")
     parser.add_argument("--require-ac-coverage", action="store_true",
-                        help="treat an FR/EC/NFR without an AC as an error")
+                        help="treat a mandatory FR/EC/NFR without an AC as an error")
     args = parser.parse_args(argv)
 
     failed = False
@@ -146,7 +150,7 @@ def main(argv=None):
         errors, warnings, (covered, total) = lint(path, args.require_ac_coverage)
         status = "FAIL" if errors else "ok"
         print(f"{status} {path} — {len(errors)} error(s), {len(warnings)} warning(s); "
-              f"AC coverage {covered}/{total} FR/EC/NFR")
+              f"AC coverage {covered}/{total} mandatory FR/EC/NFR")
         for e in errors:
             print(f"  error   {e}")
         for w in warnings:
