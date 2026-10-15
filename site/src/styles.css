@@ -1407,3 +1407,28 @@ h1.page-title + .page-lead,
     width: 100%;
   }
 }
+
+/* Mermaid diagrams (rendered lazily from ```mermaid blocks) */
+.markdown figure.mermaid-diagram {
+  margin: 0 0 1em;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow-x: auto;
+  text-align: center;
+}
+
+.markdown figure.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown pre.mermaid-failed::before {
+  content: attr(data-note);
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+}
