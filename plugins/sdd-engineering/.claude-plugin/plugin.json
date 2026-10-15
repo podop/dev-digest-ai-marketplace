@@ -1,0 +1,15 @@
+{
+  "name": "sdd-engineering",
+  "version": "1.0.0",
+  "description": "Spec Driven Development workflow: spec-creator writes a traceable spec, implementation-planner turns it into a plan, run-plan drives the implementer and an independent review gate (plan-verifier + architecture-reviewer), workflow-retro measures the run.",
+  "author": { "name": "AI Engineering" },
+  "homepage": "https://podop.github.io/dev-digest-ai-marketplace/#/plugin/sdd-engineering",
+  "repository": "https://github.com/podop/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["sdd", "spec-driven-development", "spec", "plan", "workflow", "review", "acceptance-criteria"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" },
+    { "name": "research-tools", "version": "^1.0.0" },
+    { "name": "architecture-review", "version": "^1.0.0" }
+  ]
+}

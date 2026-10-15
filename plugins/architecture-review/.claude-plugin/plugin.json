@@ -1,0 +1,13 @@
+{
+  "name": "architecture-review",
+  "version": "1.0.0",
+  "description": "An independent, read-only architecture-reviewer agent that checks a branch diff against the repository's own documented architecture rules and deterministic boundary checks.",
+  "author": { "name": "AI Engineering" },
+  "homepage": "https://podop.github.io/dev-digest-ai-marketplace/#/plugin/architecture-review",
+  "repository": "https://github.com/podop/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["architecture", "review", "dependency-cruiser", "layers", "boundaries", "read-only"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" }
+  ]
+}

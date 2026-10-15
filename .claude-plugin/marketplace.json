@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "dev-digest-ai-marketplace",
+  "owner": { "name": "AI Engineering" },
+  "metadata": {
+    "description": "Team harness for Claude Code: Spec Driven Development workflow, shared engineering skills, research and architecture-review agents."
+  },
+  "plugins": [
+    { "name": "engineering-paved-path", "source": "./plugins/engineering-paved-path", "category": "engineering" },
+    { "name": "research-tools", "source": "./plugins/research-tools", "category": "research" },
+    { "name": "architecture-review", "source": "./plugins/architecture-review", "category": "review" },
+    { "name": "sdd-engineering", "source": "./plugins/sdd-engineering", "category": "workflow" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "engineering-paved-path",
+  "version": "1.0.0",
+  "description": "Shared engineering practices as on-demand skills: React, React Testing Library, Fastify, onion architecture, Drizzle, PostgreSQL, Zod, TypeScript, security (OWASP) and Mermaid diagrams.",
+  "author": { "name": "AI Engineering" },
+  "homepage": "https://podop.github.io/dev-digest-ai-marketplace/#/plugin/engineering-paved-path",
+  "repository": "https://github.com/podop/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["react", "testing", "fastify", "architecture", "drizzle", "postgresql", "zod", "typescript", "security", "mermaid"]
+}
