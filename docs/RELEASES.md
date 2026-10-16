@@ -126,3 +126,29 @@ services. If a release wrote something wrong, review it with `git status` / `git
 it with git as usual.
 
 If a release is unsafe (not just buggy), follow [SECURITY.md](SECURITY.md#after-an-unsafe-release).
+
+## Rehearsal log
+
+### 2026-10-16 — 1.0.0 → 1.1.0 → stable 1.0.0 → latest 1.1.0
+
+Done in a separate project (`podop/TaskTracker`, PR #1), at project scope.
+
+| Step | Command | Result |
+|---|---|---|
+| Install 1.0.0 | `claude plugin marketplace add podop/dev-digest-ai-marketplace --scope project` · `claude plugin install sdd-engineering@dev-digest-ai-marketplace --scope project` | `sdd-engineering` 1.0.0 and 3 dependencies at 1.0.0 resolved from tags; no `errors` in `claude plugin list --json` |
+| Workflow on 1.0.0 | spec-creator → implementation-planner → `/sdd-engineering:run-plan` → `/sdd-engineering:workflow-retro` | spec + plan approved; architecture PASS, plan-verifier 72 PASS / 0 FAIL; `mvn verify` green |
+| Release 1.1.0 | `node scripts/release.mjs --all --push` | `sdd-engineering--v1.1.0` on `c3f8ee6`; dependencies unchanged |
+| Update | `claude plugin marketplace update dev-digest-ai-marketplace` · `claude plugin update sdd-engineering@dev-digest-ai-marketplace --scope project` | "updated from 1.0.0 to 1.1.0"; new session's init trace: `sdd-engineering … 1.1.0` |
+| New behavior | ask spec-creator to approve a spec whose FR7 has no AC | stays `Status: draft`, names FR7, proposes AC8 |
+| Roll back | `scripts/switch-channel.sh stable --scope project` | `…@dev-digest-ai-marketplace-stable` 1.0.0 + dependencies; latest dependencies pruned; init trace shows the stable 1.0.0 set |
+| Smoke eval | evals of the installed stable plugins (`negative-unrelated-question`, `spec-small-feature`, `plan-from-spec`) | 3/3 cases 1.00 |
+| Return | `scripts/switch-channel.sh latest --scope project` | back to 1.1.0; stable channel stays declared for the next rollback |
+
+Kept across every switch: `specs/`, `docs/plans/`, `.sdd/`, `docs/retros/ledger.md` (only
+`.claude/settings.json` changed). No plugin data directory is used.
+
+Known limitation: the eval cases load dependency plugins by relative path (`plugins:` in each
+`prompt.md`), which matches the repository layout, not the plugin cache. To smoke-test an
+installed channel, copy the four installed directories (`installPath` in
+`~/.claude/plugins/installed_plugins.json`) into a `plugins/<name>/` layout and run
+`claude plugin eval plugins --eval-dir sdd-engineering/evals --tag cost-baseline --runs 1 …`.
