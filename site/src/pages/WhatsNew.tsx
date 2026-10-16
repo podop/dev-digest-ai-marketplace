@@ -1,11 +1,14 @@
+import { VersionChip } from '../components/Cards';
 import { Markdown } from '../components/Markdown';
-import { EmptyState } from '../components/States';
+import { PageBody, PageHeader } from '../components/PageHeader';
+import { Muted } from '../components/States';
 import { t } from '../i18n';
 import type { Catalog } from '../lib/data';
 import { formatDate, githubTagUrl } from '../lib/format';
 import { routes } from '../lib/router';
 import type { Release } from '../lib/types';
 import { usePageTitle } from '../lib/usePageTitle';
+import { Badge, Card, EmptyState, Icon } from '../ui';
 
 function groupByDate(releases: Release[]): [string, Release[]][] {
   const groups = new Map<string, Release[]>();
@@ -19,6 +22,38 @@ function groupByDate(releases: Release[]): [string, Release[]][] {
   return [...groups.entries()].sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : b.localeCompare(a)));
 }
 
+const tagStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '1px 8px',
+  borderRadius: 5,
+  fontSize: 12,
+  border: '1px solid var(--border)',
+  background: 'var(--bg-surface)',
+  color: 'var(--text-secondary)',
+  maxWidth: '100%',
+  overflowWrap: 'anywhere',
+} as const;
+
+function TagChip({ tag, url }: { tag: string; url: string | null }) {
+  const inner = (
+    <>
+      <Icon.Tag size={12} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-muted)' }} />
+      {tag}
+    </>
+  );
+  return url ? (
+    <a className="mono cat-chip-link" href={url} target="_blank" rel="noopener noreferrer" style={tagStyle}>
+      {inner}
+    </a>
+  ) : (
+    <span className="mono" style={tagStyle}>
+      {inner}
+    </span>
+  );
+}
+
 export function WhatsNew({ catalog }: { catalog: Catalog }) {
   const { index, releases } = catalog;
   usePageTitle(t('whatsNew.title'), index.marketplace.name);
@@ -27,56 +62,60 @@ export function WhatsNew({ catalog }: { catalog: Catalog }) {
 
   return (
     <>
-      <h1 className="page-title">{t('whatsNew.title')}</h1>
-      <p className="page-lead">{t('whatsNew.lead')}</p>
-      {groups.length === 0 ? (
-        <EmptyState title={t('whatsNew.emptyTitle')} body={t('whatsNew.emptyBody')} />
-      ) : (
-        <ol className="timeline">
-          {groups.map(([date, items]) => (
-            <li key={date || 'undated'} className="timeline-group">
-              <h2 className="timeline-date">
-                {date ? <time dateTime={date}>{formatDate(date)}</time> : t('whatsNew.undated')}
-              </h2>
-              <ul className="timeline-items">
-                {items.map((r) => {
-                  const tagUrl = githubTagUrl(repo, r.tag);
-                  const plugin = catalog.pluginsByName.get(r.plugin);
-                  return (
-                    <li key={`${r.plugin}@${r.version}`} className="card release-card">
-                      <header className="card-head">
-                        <h3 className="card-title">
-                          <a href={routes.plugin(r.plugin)}>{r.plugin}</a>
-                        </h3>
-                        <span className="version">{t('plugin.versionValue', { version: r.version })}</span>
-                        {r.untagged ? (
-                          <span className="badge badge-muted" title={t('releases.untaggedHint')}>
-                            {t('releases.untagged')}
-                          </span>
-                        ) : tagUrl ? (
-                          <a className="badge badge-tag" href={tagUrl} target="_blank" rel="noopener noreferrer">
-                            {r.tag}
-                          </a>
+      <PageHeader title={t('whatsNew.title')} description={t('whatsNew.lead')} bordered />
+      <PageBody narrow>
+        {groups.length === 0 ? (
+          <Card>
+            <EmptyState icon="History" title={t('whatsNew.emptyTitle')} body={t('whatsNew.emptyBody')} />
+          </Card>
+        ) : (
+          <ol className="cat-timeline">
+            {groups.map(([date, items]) => (
+              <li key={date || 'undated'} className="cat-timeline-group">
+                <span className="cat-timeline-dot" aria-hidden="true" />
+                <h2
+                  className="mono"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}
+                >
+                  <Icon.Calendar size={13} aria-hidden="true" style={{ color: 'var(--text-muted)' }} />
+                  {date ? <time dateTime={date}>{formatDate(date)}</time> : t('whatsNew.undated')}
+                </h2>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {items.map((r) => {
+                    const plugin = catalog.pluginsByName.get(r.plugin);
+                    return (
+                      <Card as="li" key={`${r.plugin}@${r.version}`}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                          <h3 style={{ fontSize: 14.5, fontWeight: 600 }}>
+                            <a className="cat-link-plain mono" href={routes.plugin(r.plugin)}>
+                              {r.plugin}
+                            </a>
+                          </h3>
+                          <VersionChip version={r.version} />
+                          {r.untagged ? (
+                            <Badge color="var(--warn)" bg="var(--warn-bg)" title={t('releases.untaggedHint')}>
+                              {t('releases.untagged')}
+                            </Badge>
+                          ) : r.tag ? (
+                            <TagChip tag={r.tag} url={githubTagUrl(repo, r.tag)} />
+                          ) : null}
+                        </div>
+                        {r.notes.trim() ? (
+                          <div className="cat-release-notes">
+                            <Markdown source={r.notes} context={{ repo, sourcePath: `${plugin?.sourcePath ?? ''}/CHANGELOG.md` }} />
+                          </div>
                         ) : (
-                          <span className="badge badge-tag">{r.tag}</span>
+                          <Muted>{t('whatsNew.noNotes')}</Muted>
                         )}
-                      </header>
-                      {r.notes.trim() ? (
-                        <Markdown
-                          source={r.notes}
-                          context={{ repo, sourcePath: `${plugin?.sourcePath ?? ''}/CHANGELOG.md` }}
-                        />
-                      ) : (
-                        <p className="muted">{t('whatsNew.noNotes')}</p>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </li>
-          ))}
-        </ol>
-      )}
+                      </Card>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        )}
+      </PageBody>
     </>
   );
 }

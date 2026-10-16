@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Layout } from './components/Layout';
-import { ErrorState, Loading } from './components/States';
+import { PageBody } from './components/PageHeader';
+import { Loading } from './components/States';
 import { t } from './i18n';
 import { useCatalog } from './lib/data';
 import { useRoute, type Route } from './lib/router';
@@ -12,6 +13,7 @@ import { NotFound } from './pages/NotFound';
 import { PluginPage } from './pages/PluginPage';
 import { Search } from './pages/Search';
 import { WhatsNew } from './pages/WhatsNew';
+import { ErrorState } from './ui';
 
 function Page({ route, catalog }: { route: Route; catalog: Catalog }) {
   const [section = '', param, ...rest] = route.segments;
@@ -46,11 +48,20 @@ export function App() {
   }, [screen]);
 
   return (
-    <Layout route={route} index={state.status === 'ready' ? state.data.index : null}>
+    <Layout route={route} catalog={state.status === 'ready' ? state.data : null}>
       {state.status === 'loading' ? (
         <Loading />
       ) : state.status === 'error' ? (
-        <ErrorState title={t('common.errorTitle')} body={t('common.errorBody')} detail={state.error.message} />
+        <PageBody>
+          <ErrorState
+            fullScreen
+            title={t('common.errorTitle')}
+            body={t('common.errorBody')}
+            detail={state.error.message}
+            retryLabel={t('common.retry')}
+            onRetry={() => window.location.reload()}
+          />
+        </PageBody>
       ) : (
         <Page route={route} catalog={state.data} />
       )}

@@ -3,7 +3,8 @@ import { t } from '../i18n';
 import { useBody } from '../lib/data';
 import { renderMarkdown, type MarkdownContext } from '../lib/markdown';
 import { renderMermaidIn, resetMermaidIn } from '../lib/mermaid';
-import { ErrorState, Loading } from './States';
+import { ErrorState } from '../ui';
+import { DocumentLoading, Muted } from './States';
 
 function onAnchorClick(event: MouseEvent<HTMLDivElement>) {
   const target = event.target instanceof Element ? event.target.closest('a[data-anchor]') : null;
@@ -38,7 +39,7 @@ export function Markdown({ source, context }: { source: string; context: Markdow
   }, [html]);
 
   // Safe: `html` was sanitized by DOMPurify in renderMarkdown; diagrams are sanitized in renderMermaidIn.
-  return <div ref={ref} className="markdown" onClick={onAnchorClick} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div ref={ref} className="dd-md" onClick={onAnchorClick} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /** Loads a generated body file and renders it. */
@@ -52,8 +53,8 @@ export function MarkdownBody({
   emptyText: string;
 }) {
   const body = useBody(path);
-  if (body.status === 'loading') return <Loading label={t('common.loadingDocument')} />;
+  if (body.status === 'loading') return <DocumentLoading />;
   if (body.status === 'error') return <ErrorState title={t('common.documentErrorTitle')} body={t('common.documentErrorBody')} />;
-  if (!body.data || !body.data.trim()) return <p className="muted">{emptyText}</p>;
+  if (!body.data || !body.data.trim()) return <Muted>{emptyText}</Muted>;
   return <Markdown source={body.data} context={context} />;
 }

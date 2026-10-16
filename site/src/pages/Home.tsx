@@ -1,11 +1,12 @@
-import { PluginCard } from '../components/Cards';
-import { SearchForm } from '../components/SearchForm';
-import { EmptyState } from '../components/States';
+import { Count, PluginCard, StatCard, VersionChip } from '../components/Cards';
+import { MetaItem, PageBody, PageHeader } from '../components/PageHeader';
+import { Muted } from '../components/States';
 import { t, tn } from '../i18n';
 import type { Catalog } from '../lib/data';
-import { formatDate } from '../lib/format';
+import { formatDate, githubCommitUrl, githubRepoUrl, shortSha } from '../lib/format';
 import { routes } from '../lib/router';
 import { usePageTitle } from '../lib/usePageTitle';
+import { Badge, Button, Card, EmptyState, Kbd, SectionLabel } from '../ui';
 
 export function Home({ catalog }: { catalog: Catalog }) {
   const { index, releases } = catalog;
@@ -14,93 +15,156 @@ export function Home({ catalog }: { catalog: Catalog }) {
   const agents = index.artifacts.filter((a) => a.type === 'agent').length;
   const evals = index.plugins.reduce((n, p) => n + p.components.evals, 0);
   const stats = [
-    { key: 'plugins', label: tn('stat.plugins', index.plugins.length), value: index.plugins.length, href: routes.search('', 'plugin') },
-    { key: 'skills', label: tn('stat.skills', skills), value: skills, href: routes.search('', 'skill') },
-    { key: 'agents', label: tn('stat.agents', agents), value: agents, href: routes.search('', 'agent') },
-    { key: 'evals', label: tn('stat.evals', evals), value: evals, href: null },
-  ];
+    { key: 'plugins', icon: 'Boxes', label: tn('stat.plugins', index.plugins.length), value: index.plugins.length, href: routes.search('', 'plugin') },
+    { key: 'skills', icon: 'Sparkles', label: tn('stat.skills', skills), value: skills, href: routes.search('', 'skill') },
+    { key: 'agents', icon: 'Cpu', label: tn('stat.agents', agents), value: agents, href: routes.search('', 'agent') },
+    { key: 'evals', icon: 'FlaskConical', label: tn('stat.evals', evals), value: evals, href: null },
+  ] as const;
   const latest = releases.slice(0, 3);
+  const repo = index.marketplace.repo;
+  const repoUrl = githubRepoUrl(repo);
+  const commitUrl = githubCommitUrl(repo, index.commit);
+  const known = (name: string) => catalog.pluginsByName.has(name);
 
   return (
     <>
-      <section className="hero">
-        <h1 className="hero-title">{index.marketplace.name || t('app.name')}</h1>
-        <p className="hero-lead">{index.marketplace.description || t('home.lead')}</p>
-        <SearchForm variant="hero" />
-        <p className="hint">{t('search.shortcutHint')}</p>
-      </section>
+      <PageHeader
+        title={index.marketplace.name || t('app.name')}
+        bordered
+        meta={
+          <>
+            {index.marketplace.owner ? (
+              <MetaItem icon="User" label={t('plugin.owner')}>
+                {index.marketplace.owner}
+              </MetaItem>
+            ) : null}
+            {repo ? (
+              <MetaItem icon="Github" mono>
+                {repo}
+              </MetaItem>
+            ) : null}
+            {index.commit ? (
+              <MetaItem icon="GitCommit" mono>
+                {commitUrl ? (
+                  <a className="cat-link" href={commitUrl} target="_blank" rel="noopener noreferrer">
+                    {t('footer.commit', { commit: shortSha(index.commit) })}
+                  </a>
+                ) : (
+                  t('footer.commit', { commit: shortSha(index.commit) })
+                )}
+              </MetaItem>
+            ) : null}
+          </>
+        }
+        description={index.marketplace.description || t('home.lead')}
+        actions={
+          <>
+            <Button kind="secondary" icon="BookOpen" href={routes.gettingStarted()}>
+              {t('nav.gettingStarted')}
+            </Button>
+            {repoUrl ? (
+              <Button kind="primary" icon="Github" href={repoUrl} target="_blank">
+                {t('common.viewOnGitHub')}
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
-      <section aria-label={t('home.statsLabel')}>
-        <ul className="stats">
+      <PageBody>
+        <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-muted)', marginBottom: 18 }}>
+          <Kbd>{t('search.kbd')}</Kbd>
+          <span>{t('search.shortcutHint')}</span>
+        </p>
+
+        <section aria-label={t('home.statsLabel')} className="cat-grid-stats">
           {stats.map((s) => (
-            <li key={s.key} className="stat">
-              {s.href ? (
-                <a href={s.href} className="stat-link">
-                  <span className="stat-value">{s.value}</span>
-                  <span className="stat-label">{s.label}</span>
-                </a>
-              ) : (
-                <>
-                  <span className="stat-value">{s.value}</span>
-                  <span className="stat-label">{s.label}</span>
-                </>
-              )}
-            </li>
+            <StatCard key={s.key} icon={s.icon} label={s.label} value={s.value} href={s.href} />
           ))}
-        </ul>
-      </section>
-
-      <div className="home-grid">
-        <section className="home-plugins" aria-labelledby="home-plugins-title">
-          <h2 id="home-plugins-title" className="section-title">
-            {t('home.pluginsTitle')}
-          </h2>
-          {index.plugins.length === 0 ? (
-            <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')}>
-              <a className="button" href={routes.gettingStarted()}>
-                {t('home.emptyAction')}
-              </a>
-            </EmptyState>
-          ) : (
-            <div className="card-grid">
-              {[...index.plugins]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((p) => (
-                  <PluginCard key={p.name} plugin={p} />
-                ))}
-            </div>
-          )}
         </section>
 
-        <aside className="home-releases" aria-labelledby="home-releases-title">
-          <h2 id="home-releases-title" className="section-title">
-            {t('home.releasesTitle')}
-          </h2>
-          {latest.length === 0 ? (
-            <p className="muted">{t('home.noReleases')}</p>
-          ) : (
-            <ul className="release-list">
-              {latest.map((r) => (
-                <li key={`${r.plugin}@${r.version}`} className="release-item">
-                  <a href={routes.plugin(r.plugin)} className="release-plugin">
-                    {r.plugin}
-                  </a>
-                  <span className="version">{t('plugin.versionValue', { version: r.version })}</span>
-                  {r.untagged ? <span className="badge badge-muted">{t('releases.untagged')}</span> : null}
-                  {r.date ? (
-                    <time className="muted release-date" dateTime={r.date}>
-                      {formatDate(r.date)}
-                    </time>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-          <a href={routes.whatsNew()} className="more-link">
-            {t('home.allReleases')}
-          </a>
-        </aside>
-      </div>
+        <div className="cat-split" style={{ marginTop: 28 }}>
+          <section aria-labelledby="home-plugins-title" style={{ minWidth: 0 }}>
+            <SectionLabel icon="Boxes" as="h2" id="home-plugins-title" right={<span className="tnum" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{index.plugins.length}</span>}>
+              {t('home.pluginsTitle')}
+            </SectionLabel>
+            {index.plugins.length === 0 ? (
+              <Card>
+                <EmptyState
+                  icon="Boxes"
+                  title={t('home.emptyTitle')}
+                  body={t('home.emptyBody')}
+                  headingLevel={3}
+                  action={
+                    <Button kind="secondary" icon="ArrowRight" href={routes.gettingStarted()}>
+                      {t('home.emptyAction')}
+                    </Button>
+                  }
+                />
+              </Card>
+            ) : (
+              <div className="cat-grid-cards">
+                {[...index.plugins]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((p) => (
+                    <PluginCard key={p.name} plugin={p} known={known} />
+                  ))}
+              </div>
+            )}
+          </section>
+
+          <aside aria-labelledby="home-releases-title" style={{ minWidth: 0 }}>
+            <SectionLabel icon="Tag" as="h2" id="home-releases-title">
+              {t('home.releasesTitle')}
+            </SectionLabel>
+            <Card pad={false}>
+              {latest.length === 0 ? (
+                <div style={{ padding: 'var(--card-pad)' }}>
+                  <Muted>{t('home.noReleases')}</Muted>
+                </div>
+              ) : (
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {latest.map((r, i) => (
+                    <li
+                      key={`${r.plugin}@${r.version}`}
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: '6px 10px',
+                        padding: '12px 16px',
+                        borderTop: i === 0 ? undefined : '1px solid var(--border)',
+                      }}
+                    >
+                      <a className="cat-link-plain mono" href={routes.plugin(r.plugin)} style={{ fontSize: 13, fontWeight: 600 }}>
+                        {r.plugin}
+                      </a>
+                      <VersionChip version={r.version} />
+                      {r.untagged ? (
+                        <Badge color="var(--warn)" bg="var(--warn-bg)" title={t('releases.untaggedHint')}>
+                          {t('releases.untagged')}
+                        </Badge>
+                      ) : null}
+                      {r.date ? (
+                        <span style={{ flexBasis: '100%' }}>
+                          <Count icon="Calendar">
+                            <time dateTime={r.date}>{formatDate(r.date)}</time>
+                          </Count>
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px' }}>
+                <a className="cat-link" href={routes.whatsNew()} style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {t('home.allReleases')}
+                </a>
+              </div>
+            </Card>
+          </aside>
+        </div>
+      </PageBody>
     </>
   );
 }

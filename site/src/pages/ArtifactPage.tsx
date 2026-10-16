@@ -1,7 +1,9 @@
-import { Breadcrumbs } from '../components/Breadcrumbs';
+import { useEffect, useState } from 'react';
+import { PluginChip } from '../components/Cards';
 import { CopyCommand } from '../components/CopyCommand';
 import { MarkdownBody } from '../components/Markdown';
-import { EmptyState } from '../components/States';
+import { PageBody, PageHeader } from '../components/PageHeader';
+import { Muted } from '../components/States';
 import { TypeBadge } from '../components/TypeBadge';
 import { t } from '../i18n';
 import type { Catalog } from '../lib/data';
@@ -9,50 +11,51 @@ import { dirname, githubBlobUrl } from '../lib/format';
 import { routes } from '../lib/router';
 import type { Artifact } from '../lib/types';
 import { usePageTitle } from '../lib/usePageTitle';
+import { Button, Card, EmptyState, Icon, SectionLabel, Tabs, tabPanelProps, type TabDef } from '../ui';
 
+const TABS_ID = 'artifact-tabs';
 const isTrue = (value: string | undefined) => value?.toLowerCase() === 'true';
 const isFalse = (value: string | undefined) => value?.toLowerCase() === 'false';
+
+const hintStyle = { fontSize: 12.5, lineHeight: 1.5, color: 'var(--text-muted)' } as const;
 
 function SkillUsage({ artifact }: { artifact: Artifact }) {
   const command = t('artifact.slashCommand', { plugin: artifact.plugin, name: artifact.name });
   const args = artifact.fields['argument-hint'];
   const manualOnly = isTrue(artifact.fields['disable-model-invocation']);
   const hiddenFromMenu = isFalse(artifact.fields['user-invocable']);
+  if (hiddenFromMenu) return <p style={{ fontSize: 13.5, color: 'var(--text-secondary)' }}>{t('artifact.autoOnly')}</p>;
   return (
-    <>
-      {hiddenFromMenu ? (
-        <p>{t('artifact.autoOnly')}</p>
-      ) : (
-        <>
-          <CopyCommand value={command} label={t('artifact.slashLabel')} caption={t('artifact.invokeSkill')} />
-          {args ? (
-            <p className="hint">
-              {t('artifact.argumentHint')} <code>{args}</code>
-            </p>
-          ) : null}
-          <p className="hint">{manualOnly ? t('artifact.manualOnly') : t('artifact.autoToo')}</p>
-        </>
-      )}
-    </>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <CopyCommand value={command} label={t('artifact.slashLabel')} caption={t('artifact.invokeSkill')} />
+      {args ? (
+        <p style={hintStyle}>
+          {t('artifact.argumentHint')} <code className="mono cat-inline-code">{args}</code>
+        </p>
+      ) : null}
+      <p style={hintStyle}>{manualOnly ? t('artifact.manualOnly') : t('artifact.autoToo')}</p>
+    </div>
   );
 }
 
 function AgentUsage({ artifact }: { artifact: Artifact }) {
   const subagentType = t('artifact.subagentValue', { plugin: artifact.plugin, name: artifact.name });
+  const rows = [
+    { label: t('artifact.model'), value: artifact.fields.model ?? t('artifact.modelDefault') },
+    { label: t('artifact.tools'), value: artifact.fields.tools ?? t('artifact.toolsAll') },
+  ];
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <CopyCommand value={subagentType} label={t('artifact.subagentLabel')} caption={t('artifact.invokeAgent')} />
-      <dl className="meta">
-        <div className="meta-row">
-          <dt>{t('artifact.model')}</dt>
-          <dd>{artifact.fields.model ?? t('artifact.modelDefault')}</dd>
-        </div>
-        <div className="meta-row">
-          <dt>{t('artifact.tools')}</dt>
-          <dd>{artifact.fields.tools ?? t('artifact.toolsAll')}</dd>
-        </div>
+      <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {rows.map((r) => (
+          <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '72px minmax(0, 1fr)', gap: 12, fontSize: 13 }}>
+            <dt style={{ color: 'var(--text-muted)' }}>{r.label}</dt>
+            <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{r.value}</dd>
+          </div>
+        ))}
       </dl>
-    </>
+    </div>
   );
 }
 
@@ -60,14 +63,24 @@ export function ArtifactPage({ catalog, id }: { catalog: Catalog; id: string }) 
   const { index } = catalog;
   const artifact = catalog.artifactsById.get(id);
   usePageTitle(artifact ? artifact.id : t('artifact.notFoundTitle'), index.marketplace.name);
+  const [tab, setTab] = useState('body');
+  useEffect(() => setTab('body'), [id]);
 
   if (!artifact) {
     return (
-      <EmptyState title={t('artifact.notFoundTitle')} body={t('artifact.notFoundBody', { id })}>
-        <a className="button" href={routes.search(id.split(':').pop() ?? id)}>
-          {t('plugin.searchInstead')}
-        </a>
-      </EmptyState>
+      <PageBody>
+        <EmptyState
+          icon="SearchX"
+          headingLevel={1}
+          title={t('artifact.notFoundTitle')}
+          body={t('artifact.notFoundBody', { id })}
+          action={
+            <Button kind="secondary" icon="Search" href={routes.search(id.split(':').pop() ?? id)}>
+              {t('plugin.searchInstead')}
+            </Button>
+          }
+        />
+      </PageBody>
     );
   }
 
@@ -75,102 +88,122 @@ export function ArtifactPage({ catalog, id }: { catalog: Catalog; id: string }) 
   const sourceUrl = githubBlobUrl(repo, artifact.sourcePath);
   const fileBase = dirname(artifact.sourcePath);
   const fields = Object.entries(artifact.fields);
+  const bodyLabel = artifact.type === 'skill' ? t('artifact.bodySkill') : t('artifact.bodyAgent');
+  const tabs: TabDef[] = [{ key: 'body', label: bodyLabel, icon: 'FileText' }];
+  if (artifact.type === 'skill') tabs.push({ key: 'files', label: t('artifact.files'), icon: 'Folder', count: artifact.files.length });
+  const current = artifact.type === 'skill' && tab === 'files' ? 'files' : 'body';
 
   return (
-    <article className="detail">
-      <Breadcrumbs
-        items={[
-          { label: t('nav.home'), href: routes.home() },
-          { label: artifact.plugin, href: routes.plugin(artifact.plugin) },
-          { label: artifact.name },
-        ]}
+    <>
+      <PageHeader
+        title={artifact.id}
+        mono
+        prefix={<TypeBadge kind={artifact.type} />}
+        meta={
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span>{t('artifact.fromPlugin')}</span>
+            <PluginChip name={artifact.plugin} href={routes.plugin(artifact.plugin)} />
+          </span>
+        }
+        description={artifact.description || t('common.noDescription')}
+        actions={
+          sourceUrl ? (
+            <Button kind="secondary" icon="Github" href={sourceUrl} target="_blank">
+              {t('common.viewOnGitHub')}
+            </Button>
+          ) : null
+        }
       />
-      <header className="detail-header">
-        <div className="detail-title-row">
-          <TypeBadge kind={artifact.type} />
-          <h1 className="page-title page-title-mono">{artifact.id}</h1>
-        </div>
-        <p className="detail-plugin">
-          {t('artifact.fromPlugin')} <a href={routes.plugin(artifact.plugin)}>{artifact.plugin}</a>
-        </p>
-        <p className="detail-lead">{artifact.description || t('common.noDescription')}</p>
-      </header>
+      <Tabs tabs={tabs} value={current} onChange={setTab} pad="0 var(--page-pad-x)" label={t('plugin.docsLabel')} idBase={TABS_ID} />
 
-      <div className="detail-layout">
-        <div className="detail-main">
-          <section className="panel" aria-labelledby="usage-title">
-            <h2 id="usage-title" className="panel-title">
-              {t('artifact.usage')}
-            </h2>
-            {artifact.type === 'skill' ? <SkillUsage artifact={artifact} /> : <AgentUsage artifact={artifact} />}
-          </section>
-          <section className="panel" aria-labelledby="body-title">
-            <h2 id="body-title" className="panel-title">
-              {artifact.type === 'skill' ? t('artifact.bodySkill') : t('artifact.bodyAgent')}
-            </h2>
-            <MarkdownBody
-              path={artifact.body}
-              context={{ repo, sourcePath: artifact.sourcePath }}
-              emptyText={t('artifact.noBody')}
-            />
-          </section>
-        </div>
-
-        <aside className="detail-side">
-          <section className="panel" aria-labelledby="fields-title">
-            <h2 id="fields-title" className="panel-title">
-              {t('artifact.fields')}
-            </h2>
-            {fields.length === 0 ? (
-              <p className="muted">{t('artifact.noFields')}</p>
-            ) : (
-              <dl className="meta meta-stacked">
-                {fields.map(([key, value]) => (
-                  <div key={key} className="meta-row">
-                    <dt>
-                      <code>{key}</code>
-                    </dt>
-                    <dd>{value}</dd>
+      <PageBody>
+        <div className="cat-detail">
+          <div {...tabPanelProps(TABS_ID, current)} style={{ minWidth: 0 }}>
+            {current === 'files' ? (
+              <Card pad={false}>
+                {artifact.files.length === 0 ? (
+                  <div style={{ padding: 'var(--card-pad)' }}>
+                    <Muted>{t('artifact.noFiles')}</Muted>
                   </div>
-                ))}
-              </dl>
+                ) : (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {artifact.files.map((file, i) => {
+                      const url = githubBlobUrl(repo, `${fileBase}/${file}`);
+                      const inner = (
+                        <>
+                          <Icon.File size={14} aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                          <span className="mono" style={{ fontSize: 13, overflowWrap: 'anywhere', flex: 1 }}>
+                            {file}
+                          </span>
+                          {url ? <Icon.ExternalLink size={13} aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }} /> : null}
+                        </>
+                      );
+                      const rowStyle = { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' } as const;
+                      return (
+                        <li key={file} style={{ borderTop: i === 0 ? undefined : '1px solid var(--border)' }}>
+                          {url ? (
+                            <a className="cat-row-hover" href={url} target="_blank" rel="noopener noreferrer" style={rowStyle}>
+                              {inner}
+                            </a>
+                          ) : (
+                            <div style={rowStyle}>{inner}</div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </Card>
+            ) : (
+              <Card style={{ padding: '20px 24px' }} className="cat-doc-card">
+                <MarkdownBody path={artifact.body} context={{ repo, sourcePath: artifact.sourcePath }} emptyText={t('artifact.noBody')} />
+              </Card>
             )}
-            {sourceUrl ? (
-              <a className="button button-block" href={sourceUrl} target="_blank" rel="noopener noreferrer">
-                {t('common.viewSource')}
-              </a>
-            ) : null}
-          </section>
+          </div>
 
-          {artifact.type === 'skill' ? (
-            <section className="panel" aria-labelledby="files-title">
-              <h2 id="files-title" className="panel-title">
-                {t('artifact.files')}
-              </h2>
-              {artifact.files.length === 0 ? (
-                <p className="muted">{t('artifact.noFiles')}</p>
+          <aside className="cat-aside">
+            <Card as="section" labelledBy="usage-title">
+              <SectionLabel icon="Terminal" as="h2" id="usage-title">
+                {t('artifact.usage')}
+              </SectionLabel>
+              {artifact.type === 'skill' ? <SkillUsage artifact={artifact} /> : <AgentUsage artifact={artifact} />}
+            </Card>
+
+            <Card as="section" labelledBy="fields-title" pad={false}>
+              <div style={{ padding: 'var(--card-pad) var(--card-pad) 0' }}>
+                <SectionLabel icon="Code" as="h2" id="fields-title">
+                  {t('artifact.fields')}
+                </SectionLabel>
+              </div>
+              {fields.length === 0 ? (
+                <div style={{ padding: '0 var(--card-pad) var(--card-pad)' }}>
+                  <Muted>{t('artifact.noFields')}</Muted>
+                </div>
               ) : (
-                <ul className="file-list">
-                  {artifact.files.map((file) => {
-                    const url = githubBlobUrl(repo, `${fileBase}/${file}`);
-                    return (
-                      <li key={file}>
-                        {url ? (
-                          <a href={url} target="_blank" rel="noopener noreferrer">
-                            <code>{file}</code>
-                          </a>
-                        ) : (
-                          <code>{file}</code>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                <table className="cat-fields">
+                  <tbody>
+                    {fields.map(([key, value]) => (
+                      <tr key={key}>
+                        <th scope="row" className="mono">
+                          {key}
+                        </th>
+                        <td>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
-            </section>
-          ) : null}
-        </aside>
-      </div>
-    </article>
+              {sourceUrl ? (
+                <div style={{ padding: '12px var(--card-pad) var(--card-pad)' }}>
+                  <Button kind="ghost" size="sm" icon="ExternalLink" href={sourceUrl} target="_blank" full>
+                    {t('common.viewSource')}
+                  </Button>
+                </div>
+              ) : null}
+            </Card>
+          </aside>
+        </div>
+      </PageBody>
+    </>
   );
 }
