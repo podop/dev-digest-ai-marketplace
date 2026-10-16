@@ -53,6 +53,6 @@ Updates, the stable channel and rollback: [docs/RELEASES.md](docs/RELEASES.md).
 | `channels/stable/` | stable channel: plugins pinned to released commits |
 | `scripts/` | harness checks, catalog index, release, channel and cost tools |
 | `site/` | catalog website (React + Vite) published to GitHub Pages |
-| `docs/` | [plugin guidelines](docs/PLUGIN-GUIDELINES.md), [security](docs/SECURITY.md), [releases](docs/RELEASES.md), [site spec](docs/SITE-SPEC.md), [cost baseline](docs/COST-BASELINE.md) |
+| `docs/` | [plugin guidelines](docs/PLUGIN-GUIDELINES.md), [security](docs/SECURITY.md), [releases and rollback rehearsal](docs/RELEASES.md), [site spec](docs/SITE-SPEC.md), [cost baseline](docs/COST-BASELINE.md) |
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Owners: [CODEOWNERS](CODEOWNERS).
