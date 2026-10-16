@@ -4,8 +4,10 @@ Static, read-only catalog of this Claude Code plugin marketplace, published on G
 (`https://podop.github.io/dev-digest-ai-marketplace/`). The contract is
 [`docs/SITE-SPEC.md`](../docs/SITE-SPEC.md).
 
-Stack: React 18, TypeScript, Vite, MiniSearch (search), marked + DOMPurify (markdown), Mermaid (diagrams, lazy-loaded).
-No backend, no UI framework, hash routing (`#/plugin/<name>`), relative asset paths
+Stack: React 18, TypeScript, Vite, MiniSearch (search), marked + DOMPurify (markdown), Mermaid (diagrams, lazy-loaded),
+the DevDigest design system (vendored in `src/ui/`, icons from `lucide-react`), Inter and JetBrains Mono
+self-hosted from `@fontsource/inter` / `@fontsource/jetbrains-mono` (no font CDN).
+No backend, no Tailwind, hash routing (`#/plugin/<name>`), relative asset paths
 (`base: './'`), so the build works under any sub-path and from any fork.
 
 ## Run locally
@@ -75,8 +77,24 @@ for source links (default: `GITHUB_REPOSITORY`, then the `origin` remote).
 | `src/lib/mermaid.ts` | lazy Mermaid rendering of ```` ```mermaid ```` blocks (strict mode, SVG re-sanitized, re-rendered on theme change) |
 | `src/lib/data.ts` | Loading `index.json`, `releases.json` and bodies |
 | `src/pages/` | One component per route |
-| `src/components/` | Layout, cards, copy buttons, tabs, markdown |
-| `src/styles.css` | Hand-written CSS; theme tokens are CSS custom properties (dark default, light via `data-theme="light"`) |
+| `src/components/` | Catalog building blocks on top of the design system: shell wiring (`Layout`), topbar search, page header, cards, copy rows, markdown |
+| `src/ui/` | **Vendored DevDigest design system** (`@devdigest/ui`): `tokens.css`, `primitives/`, `kit/`, `shell/`, `icons.tsx`, `nav.ts`, barrel `index.ts`. See [`src/ui/README.md`](src/ui/README.md) for the source commit and what was adapted |
+| `src/styles.css` | Catalog-only rules on DevDigest tokens: shell layout and mobile drawer, grids, `.dd-md` markdown blocks, Mermaid figures, search highlight |
+
+## Design system
+
+The look follows the DevDigest web app: left sidebar (264 px, catalog and plugin sections with
+count pills, theme toggle and repository link in the footer), topbar with mono breadcrumbs and a
+"Search or jump to…" field (`/` or Ctrl/Cmd+K), DevDigest page headers, underline tabs, cards
+with uppercase section labels. Components are styled inline against CSS variables, as upstream.
+Dark is the default theme; light is switched with `data-theme="light"` on `<html>`. At ≤ 900 px
+the sidebar becomes an off-canvas drawer opened from the topbar menu button.
+
+Updating the vendored kit from DevDigest: diff `src/ui/*` against
+`dev-digest/client/src/vendor/ui/*` from the commit recorded in `src/ui/README.md`, port the
+changes while keeping the catalog adaptations (labels as props, ARIA, no Tailwind / Next.js),
+keep `lucide-react` pinned to DevDigest's version, update the recorded commit, then run
+`npm run build` and check every route at 1440 px and 360 px in both themes.
 
 ## Security notes
 

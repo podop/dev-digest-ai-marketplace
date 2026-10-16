@@ -24,6 +24,20 @@ documentation, see its dependencies and copy the install command.
 - **Dark first.** Dark theme by default, light theme as an option (toggle, persisted in
   `localStorage`, guarded by try/catch). `prefers-color-scheme` is not used to override
   the default.
+- **DevDigest design system.** The site reuses the DevDigest web app's components
+  (`@devdigest/ui`), vendored in `site/src/ui/` with their API and inline-style approach
+  (tokens for dark and light via `data-theme`, primitives, kit, app shell, lucide-react
+  icons). No Tailwind and no Next.js; vendored components take every user-visible label
+  as a prop, so the text rule above still holds. `site/src/ui/README.md` records the source
+  commit and the adaptations.
+- **Self-hosted fonts.** Inter (UI) and JetBrains Mono (code, names, versions) come from
+  the pinned `@fontsource/inter` and `@fontsource/jetbrains-mono` packages and ship with
+  the build; no external font or CSS CDN.
+- **Layout.** DevDigest app shell: sidebar (marketplace name from the index, Catalog
+  section, one item per plugin with its skill + agent count, theme toggle, repository and
+  index commit links), topbar with breadcrumbs derived from the route and a search field
+  focused by `/` or Ctrl/Cmd+K. At ≤ 900 px the sidebar is an off-canvas drawer; no
+  horizontal page scroll at 360 px.
 
 ## Build pipeline
 
@@ -97,10 +111,10 @@ discovery context size.
 
 | Route | Screen | Content |
 |---|---|---|
-| `#/` | Home | Search box, totals, plugin grid, latest releases (3) |
+| `#/` | Home | Marketplace header, totals, plugin cards, latest releases (3) |
 | `#/search?q=&type=&plugin=` | Search | Free-text search across everything; type and plugin filters; result cards |
-| `#/plugin/<name>` | Plugin | Header (version, owner, license, compatibility), copy install command, dependencies and dependents, components list, README / Changelog tabs, link to source |
-| `#/artifact/<id>` | Artifact | Type badge, namespaced name, plugin link, frontmatter fields, rendered body, supporting files, how to invoke it, link to source |
+| `#/plugin/<name>` | Plugin | Header (version, owner, license, compatibility, category; "Copy install" and "View on GitHub" actions), tabs Overview (README) · Components · Changelog · Dependencies (· Compatibility), side cards: install commands, details, dependencies and dependents, discovery context |
+| `#/artifact/<id>` | Artifact | Type badge, namespaced name, plugin link, how to invoke it (copy row), frontmatter fields, tabs Body · Files (skills), link to source |
 | `#/whats-new` | What's new | Releases newest first, grouped by date, with changelog excerpts |
 | `#/getting-started` | Getting started | Add marketplace, install, update, auto-update, stable channel, rollback |
 | anything else | Not found | Link home |

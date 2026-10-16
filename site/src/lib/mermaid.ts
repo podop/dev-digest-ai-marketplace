@@ -14,8 +14,59 @@ function loadMermaid(): Promise<MermaidApi> {
   return loader;
 }
 
-function currentTheme(): 'dark' | 'default' {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'default' : 'dark';
+/**
+ * Mermaid "base" theme fed with the DevDigest design tokens of the active theme
+ * (`data-theme` dark | light), so diagrams match the surrounding cards.
+ */
+function themeConfig() {
+  const root = document.documentElement;
+  const css = getComputedStyle(root);
+  const token = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+  const dark = root.getAttribute('data-theme') !== 'light';
+  const surface = token('--bg-surface', dark ? '#141414' : '#fafafa');
+  const elevated = token('--bg-elevated', dark ? '#1c1c1c' : '#ffffff');
+  const hover = token('--bg-hover', dark ? '#242424' : '#f2f2f2');
+  const border = token('--border-strong', dark ? '#3a3a3a' : '#d4d4d4');
+  const text = token('--text-primary', dark ? '#ededed' : '#18181b');
+  const secondary = token('--text-secondary', dark ? '#999999' : '#595964');
+  return {
+    theme: 'base' as const,
+    themeVariables: {
+      darkMode: dark,
+      background: surface,
+      fontFamily: token('--font-sans', 'sans-serif'),
+      fontSize: '14px',
+      primaryColor: hover,
+      primaryTextColor: text,
+      primaryBorderColor: border,
+      secondaryColor: elevated,
+      secondaryTextColor: text,
+      secondaryBorderColor: border,
+      tertiaryColor: surface,
+      tertiaryTextColor: text,
+      tertiaryBorderColor: border,
+      mainBkg: hover,
+      nodeBorder: border,
+      nodeTextColor: text,
+      textColor: text,
+      titleColor: text,
+      lineColor: secondary,
+      clusterBkg: elevated,
+      clusterBorder: border,
+      edgeLabelBackground: surface,
+      noteBkgColor: elevated,
+      noteTextColor: text,
+      noteBorderColor: border,
+      actorBkg: hover,
+      actorBorder: border,
+      actorTextColor: text,
+      signalColor: secondary,
+      signalTextColor: text,
+      labelBoxBkgColor: hover,
+      labelBoxBorderColor: border,
+      labelTextColor: text,
+    },
+  };
 }
 
 const SVG_SANITIZE = {
@@ -36,8 +87,7 @@ export async function renderMermaidIn(root: HTMLElement, failedNote: string): Pr
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
-    theme: currentTheme(),
-    fontFamily: 'inherit',
+    ...themeConfig(),
     htmlLabels: false,
     flowchart: { htmlLabels: false, useMaxWidth: true, wrappingWidth: 400 },
   });

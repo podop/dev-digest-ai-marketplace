@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ResultCard } from '../components/Cards';
-import { EmptyState } from '../components/States';
+import { PageBody, PageHeader } from '../components/PageHeader';
 import { t, tn } from '../i18n';
 import type { Catalog } from '../lib/data';
 import { navigate, routes, type Route } from '../lib/router';
 import { buildSearchIndex, runSearch } from '../lib/search';
 import type { CatalogIndex, DocKind } from '../lib/types';
 import { usePageTitle } from '../lib/usePageTitle';
+import { Button, Card, Chip, EmptyState, Icon, SelectInput, TextInput } from '../ui';
+import { TYPE_ICON } from '../components/TypeBadge';
 
 const KINDS: DocKind[] = ['plugin', 'skill', 'agent'];
 const TYPE_LABEL_KEYS = { plugin: 'search.typePlugins', skill: 'search.typeSkills', agent: 'search.typeAgents' } as const;
@@ -54,110 +56,112 @@ export function Search({ catalog, route }: { catalog: Catalog; route: Route }) {
   const impliedActive = typeParam === null && outcome.impliedType !== null && outcome.effectiveType === outcome.impliedType;
   const hasFilters = typeParam !== null || plugin !== null;
   const pluginNames = useMemo(() => index.plugins.map((p) => p.name).sort(), [index]);
+  const activeType: DocKind | '' = typeParam === 'all' || typeParam === null ? (impliedActive ? outcome.impliedType ?? '' : '') : typeParam;
 
   return (
     <>
-      <h1 className="page-title">{t('search.title')}</h1>
-      <form
-        className="search-panel"
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          update({ q: text.trim() });
-        }}
-      >
-        <div className="search-form search-form-hero">
+      <PageHeader title={t('search.title')} description={t('search.shortcutHint')} bordered />
+      <PageBody>
+        <form
+          role="search"
+          aria-label={t('search.label')}
+          onSubmit={(e) => {
+            e.preventDefault();
+            update({ q: text.trim() });
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+        >
           <label htmlFor="search-page-input" className="visually-hidden">
             {t('search.label')}
           </label>
-          <input
+          <TextInput
             id="search-page-input"
             type="search"
-            className="input search-input"
-            placeholder={t('search.placeholderLong')}
             value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              update({ q: e.target.value }, true);
+            onChange={(value) => {
+              setText(value);
+              update({ q: value }, true);
             }}
+            placeholder={t('search.placeholderLong')}
             data-search="primary"
             autoComplete="off"
             spellCheck={false}
             autoFocus={!q}
+            enterKeyHint="search"
+            prefix={<Icon.Search size={15} aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
           />
-        </div>
-        <div className="filters">
-          <label className="filter">
-            <span className="filter-label">{t('search.filterType')}</span>
-            <select
-              className="input select"
-              value={typeParam === 'all' || typeParam === null ? (impliedActive ? outcome.impliedType ?? '' : '') : typeParam}
-              onChange={(e) => update({ type: e.target.value === '' ? 'all' : (e.target.value as DocKind) })}
-            >
-              <option value="">{t('search.typeAll')}</option>
+          <div className="cat-filters">
+            <div role="group" aria-label={t('search.filterType')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <Chip active={activeType === ''} onClick={() => update({ type: 'all' })}>
+                {t('search.typeAll')}
+              </Chip>
               {KINDS.map((k) => (
-                <option key={k} value={k}>
+                <Chip key={k} icon={TYPE_ICON[k]} active={activeType === k} onClick={() => update({ type: k })}>
                   {t(TYPE_LABEL_KEYS[k])}
-                </option>
+                </Chip>
               ))}
-            </select>
-          </label>
-          <label className="filter">
-            <span className="filter-label">{t('search.filterPlugin')}</span>
-            <select
-              className="input select"
-              value={plugin ?? ''}
-              onChange={(e) => update({ plugin: e.target.value || null })}
-            >
-              <option value="">{t('search.pluginAll')}</option>
-              {pluginNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {hasFilters ? (
-            <button type="button" className="button button-ghost" onClick={() => navigate(routes.search(q), false)}>
-              {t('search.clearFilters')}
-            </button>
-          ) : null}
-        </div>
-      </form>
+            </div>
+            <div className="cat-filter-plugin">
+              <SelectInput
+                ariaLabel={t('search.filterPlugin')}
+                value={plugin ?? ''}
+                onChange={(value) => update({ plugin: value || null })}
+                options={[{ value: '', label: t('search.pluginAll') }, ...pluginNames.map((name) => ({ value: name, label: name }))]}
+              />
+            </div>
+            {hasFilters ? (
+              <Button kind="tertiary" icon="X" onClick={() => navigate(routes.search(q), false)}>
+                {t('search.clearFilters')}
+              </Button>
+            ) : null}
+          </div>
+        </form>
 
-      <div className="search-summary" role="status" aria-live="polite">
-        <span>
-          {q.trim()
-            ? tn('search.resultsFor', outcome.hits.length, { query: q.trim() })
-            : tn('search.results', outcome.hits.length)}
-        </span>
-        {impliedActive && outcome.impliedType ? (
-          <span className="implied">
-            {t('search.impliedType', { type: t(TYPE_NOUN_KEYS[outcome.impliedType]) })}{' '}
-            <button type="button" className="link-button" onClick={() => update({ type: 'all' })}>
-              {t('search.showAllTypes')}
-            </button>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 12px', margin: '18px 0 14px', fontSize: 13, color: 'var(--text-secondary)' }}
+        >
+          <span className="tnum">
+            {q.trim() ? tn('search.resultsFor', outcome.hits.length, { query: q.trim() }) : tn('search.results', outcome.hits.length)}
           </span>
-        ) : null}
-      </div>
-
-      {index.plugins.length === 0 ? (
-        <EmptyState title={t('home.emptyTitle')} body={t('home.emptyBody')} />
-      ) : outcome.hits.length === 0 ? (
-        <EmptyState title={t('search.noResultsTitle', { query: q.trim() })} body={t('search.noResultsBody')}>
-          {hasFilters ? (
-            <button type="button" className="button" onClick={() => navigate(routes.search(q))}>
-              {t('search.clearFilters')}
-            </button>
+          {impliedActive && outcome.impliedType ? (
+            <span style={{ color: 'var(--text-muted)' }}>
+              {t('search.impliedType', { type: t(TYPE_NOUN_KEYS[outcome.impliedType]) })}{' '}
+              <button type="button" className="cat-link-button" onClick={() => update({ type: 'all' })}>
+                {t('search.showAllTypes')}
+              </button>
+            </span>
           ) : null}
-        </EmptyState>
-      ) : (
-        <div className="card-grid results">
-          {outcome.hits.map((hit) => (
-            <ResultCard key={hit.key} hit={hit} />
-          ))}
         </div>
-      )}
+
+        {index.plugins.length === 0 ? (
+          <Card>
+            <EmptyState icon="Boxes" title={t('home.emptyTitle')} body={t('home.emptyBody')} />
+          </Card>
+        ) : outcome.hits.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon="SearchX"
+              title={t('search.noResultsTitle', { query: q.trim() })}
+              body={t('search.noResultsBody')}
+              action={
+                hasFilters ? (
+                  <Button kind="secondary" icon="X" onClick={() => navigate(routes.search(q))}>
+                    {t('search.clearFilters')}
+                  </Button>
+                ) : undefined
+              }
+            />
+          </Card>
+        ) : (
+          <div className="cat-grid-cards">
+            {outcome.hits.map((hit) => (
+              <ResultCard key={hit.key} hit={hit} />
+            ))}
+          </div>
+        )}
+      </PageBody>
     </>
   );
 }
