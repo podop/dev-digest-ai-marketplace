@@ -80,6 +80,18 @@ Total $4.06 including judges (baseline $4.00). Critical errors: none.
 | Total suite cost | $4.00 | $4.06 | +1.5 % — within noise |
 | Pass rate / quality gate | 11/11, green | 11/11, green | unchanged |
 
+### Cost per successful workflow
+
+One workflow = the fixed scenario end to end: a spec (`spec-small-feature`) plus a plan
+(`plan-from-spec`). Cost per successful workflow = total cost of those runs ÷ number of complete
+workflows whose spec and plan both passed.
+
+| | Successful workflows | Total cost | Cost per successful workflow | Excl. judges | Wall time per workflow |
+|---|---|---|---|---|---|
+| Baseline `1df1d10` | 3 / 3 | $2.986 | **$0.995** | $0.991 | 284 s |
+| Optimized `46caf33` | 3 / 3 | $3.023 | **$1.008** | $1.003 | 298 s |
+| Change | — | +1.2 % | **+1.3 % (within noise)** | | +5 % (within noise) |
+
 **Verdict.** The quality gate stays green and no false negatives appeared (the negative case still
 scores 1.00). The change does what it targets: the extra file read is gone in every run, with one
 tool call and ~2 k cache-write tokens less per agent. The cost and latency differences are smaller

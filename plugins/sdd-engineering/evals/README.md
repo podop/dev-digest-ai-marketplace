@@ -8,6 +8,7 @@ small feature (priority for todos) in a tiny repository that has its own `CLAUDE
 | `spec-small-feature` | spec-creator runs, writes the spec where asked, ACs trace to FRs with a verify method, no implementation details, status left as draft | cost-baseline |
 | `plan-from-spec` | implementation-planner plans from the ready spec, covers every AC, uses the repo's test command, invents nothing | cost-baseline |
 | `plan-no-test-command` | without a test command the plan says so instead of inventing one | edge |
+| `spec-ac-gate` | (1.1.0) a spec whose FR3 has no AC stays draft when the user approves it as is; the reply names FR3 | v1.1.0 |
 | `negative-unrelated-question` | an unrelated question starts no SDD agent or skill and writes no files | negative, cost-baseline |
 
 `_fixtures/todo-repo.sh` seeds the repository (git, `CLAUDE.md`, `package.json`, `src/`, `test/`);

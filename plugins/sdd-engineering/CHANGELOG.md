@@ -3,6 +3,28 @@
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/)
 as described in [docs/RELEASES.md](../../docs/RELEASES.md).
 
+## [1.1.0] - 2026-10-15
+
+### Changed
+- `spec-creator` does not set `Status: ready-for-planning` until every mandatory requirement
+  (each live FR, EC and NFR not marked `(optional)`) is traced by an acceptance criterion. The
+  user's approval alone no longer passes the gate; the blocking ids are reported with a proposed
+  Given/When/Then, and the user resolves each by accepting an AC, marking the requirement
+  `(optional)` or dropping it.
+- `spec_lint.py` understands `(optional)` requirements; `--require-ac-coverage` is now part of the
+  spec-creator flow.
+- `implementation-planner` treats an untraced mandatory requirement as a spec change request.
+
+### Compatibility
+- Backward compatible: specs that passed 1.0.0 with full AC coverage are unchanged; older specs
+  whose "Decisions" accept a requirement without an AC are still planned by
+  `implementation-planner`. No paths, names or output formats changed.
+
+### Added
+- Eval `spec-ac-gate`: a spec with an untraced mandatory requirement stays draft when the user asks
+  to approve it as is.
+- README diagram renders on GitHub and in the catalog (top-down, Mermaid entities).
+
 ## [1.0.0] - 2026-10-15
 
 ### Added
@@ -18,4 +40,4 @@ as described in [docs/RELEASES.md](../../docs/RELEASES.md).
 
 ### Notes
 - Acceptance-criteria coverage is reported by `spec_lint.py` as a warning; it does not block
-  `Status: ready-for-planning` yet.
+  `Status: ready-for-planning` (changed in 1.1.0).

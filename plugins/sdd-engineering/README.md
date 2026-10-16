@@ -37,7 +37,7 @@ Three manual phases, each started by you, usually in its own session; artifacts 
 
 | Phase | Start it with | Produces |
 |---|---|---|
-| 1. Spec | `claude --agent sdd-engineering:spec-creator` | `specs/<YYYY-MM-DD>-<slug>.md` — scenarios, FR/EC/NFR, acceptance criteria with `Traces:` and `Verify:`, open questions. You approve it (`Status: ready-for-planning`). |
+| 1. Spec | `claude --agent sdd-engineering:spec-creator` | `specs/<YYYY-MM-DD>-<slug>.md` — scenarios, FR/EC/NFR, acceptance criteria with `Traces:` and `Verify:`, open questions. You approve it; it becomes `Status: ready-for-planning` only when every mandatory requirement has an acceptance criterion (requirements you mark `(optional)` are exempt). |
 | 2. Plan | `claude --agent sdd-engineering:implementation-planner` | `docs/plans/<YYYY-MM-DD>-<slug>.md` + `.context.md` — steps with files, skills, tests, `Covers: AC…`, waves, verification. You approve it (`Status: approved`). |
 | 3. Implement + review | `/sdd-engineering:run-plan docs/plans/<plan>.md` | code and tests; review reports in `.sdd/review/<slug>/`; fix rounds until both reviewers pass. |
 | Retro (optional) | `/sdd-engineering:workflow-retro <slug>` in the same session | per-agent tokens, cache hit, time, cost; ≤ 5 action items; one row in `docs/retros/ledger.md`. |

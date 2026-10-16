@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Seeds a tiny Node repository with its own instructions and test command.
-# Usage (from a case scaffold): bash "$(dirname "$0")/../_fixtures/todo-repo.sh" [--no-tests] [--with-spec]
+# Usage (from a case scaffold): bash "$(dirname "$0")/../_fixtures/todo-repo.sh" [--no-tests] [--with-spec] [--with-uncovered-spec]
 set -euo pipefail
 FIX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NO_TESTS=0; WITH_SPEC=0
+NO_TESTS=0; WITH_SPEC=0; WITH_UNCOVERED=0
 for a in "$@"; do
-  case "$a" in --no-tests) NO_TESTS=1 ;; --with-spec) WITH_SPEC=1 ;; esac
+  case "$a" in --no-tests) NO_TESTS=1 ;; --with-spec) WITH_SPEC=1 ;; --with-uncovered-spec) WITH_UNCOVERED=1 ;; esac
 done
 mkdir -p src test
 cat > CLAUDE.md <<'MD'
@@ -61,6 +61,10 @@ JS
 if [ "$WITH_SPEC" = 1 ]; then
   mkdir -p specs
   cp "$FIX_DIR/todo-priority.spec.md" specs/todo-priority.md
+fi
+if [ "$WITH_UNCOVERED" = 1 ]; then
+  mkdir -p specs
+  cp "$FIX_DIR/todo-priority-uncovered.spec.md" specs/todo-priority.md
 fi
 git init -q -b main
 git add -A
